@@ -14,7 +14,7 @@ export default function Index() {
       <ul className="list-disc mt-4 pl-6 space-y-2">
         <li>
           <a
-            className="text-blue-700 underline visited:text-purple-900"
+            className="link link-secondary"
             target="_blank"
             href="https://remix.run/start/quickstart"
             rel="noreferrer"
@@ -24,7 +24,7 @@ export default function Index() {
         </li>
         <li>
           <a
-            className="text-blue-700 underline visited:text-purple-900"
+            className="link link-secondary"
             target="_blank"
             href="https://remix.run/start/tutorial"
             rel="noreferrer"
@@ -34,7 +34,7 @@ export default function Index() {
         </li>
         <li>
           <a
-            className="text-blue-700 underline visited:text-purple-900"
+            className="link link-secondary"
             target="_blank"
             href="https://remix.run/docs"
             rel="noreferrer"
