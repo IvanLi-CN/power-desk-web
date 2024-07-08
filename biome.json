@@ -11,72 +11,14 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
-    "lineWidth": 80,
-    "ignore": ["node_modules", "build"]
+    "lineWidth": 80
   },
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
-      "complexity": {
-        "noExtraBooleanCast": "error",
-        "noMultipleSpacesInRegularExpressionLiterals": "error",
-        "noUselessCatch": "error",
-        "noWith": "error"
-      },
-      "correctness": {
-        "noConstAssign": "error",
-        "noConstantCondition": "error",
-        "noEmptyCharacterClassInRegex": "error",
-        "noEmptyPattern": "error",
-        "noGlobalObjectCalls": "error",
-        "noInnerDeclarations": "error",
-        "noInvalidConstructorSuper": "error",
-        "noNewSymbol": "error",
-        "noNonoctalDecimalEscape": "error",
-        "noPrecisionLoss": "error",
-        "noSelfAssign": "error",
-        "noSetterReturn": "error",
-        "noSwitchDeclarations": "error",
-        "noUndeclaredVariables": "error",
-        "noUnreachable": "error",
-        "noUnreachableSuper": "error",
-        "noUnsafeFinally": "error",
-        "noUnsafeOptionalChaining": "error",
-        "noUnusedLabels": "error",
-        "noUnusedVariables": "error",
-        "useIsNan": "error",
-        "useValidForDirection": "error",
-        "useYield": "error"
-      },
-      "style": { "noNonNullAssertion": "off" },
-      "suspicious": {
-        "noAsyncPromiseExecutor": "error",
-        "noCatchAssign": "error",
-        "noClassAssign": "error",
-        "noCompareNegZero": "error",
-        "noControlCharactersInRegex": "error",
-        "noDebugger": "error",
-        "noDuplicateCase": "error",
-        "noDuplicateClassMembers": "error",
-        "noDuplicateObjectKeys": "error",
-        "noDuplicateParameters": "error",
-        "noEmptyBlockStatements": "error",
-        "noFallthroughSwitchClause": "error",
-        "noFunctionAssign": "error",
-        "noGlobalAssign": "error",
-        "noImportAssign": "error",
-        "noMisleadingCharacterClass": "error",
-        "noPrototypeBuiltins": "error",
-        "noRedeclare": "error",
-        "noShadowRestrictedNames": "error",
-        "noUnsafeNegation": "error",
-        "useGetterReturn": "error",
-        "useValidTypeof": "error"
-      }
-    },
-    "ignore": ["node_modules", "build"]
+      "recommended": true
+    }
   },
   "javascript": {
     "formatter": {
@@ -90,9 +32,17 @@
     }
   },
   "json": { "formatter": { "trailingCommas": "none" } },
+  "files": {
+    "ignore": ["**/node_modules", "**/build", "**/dist", "**/public"],
+    "ignoreUnknown": true
+  },
   "overrides": [
-    { "include": ["**/*.{js,jsx,ts,tsx}"] },
-    { "include": ["**/*.{ts,tsx}"] },
-    { "include": [".eslintrc.cjs"] }
+    {
+      "include": [".vscode/**"],
+      "json": {
+        "formatter": { "trailingCommas": "all" },
+        "parser": { "allowComments": true, "allowTrailingCommas": true }
+      }
+    }
   ]
 }
