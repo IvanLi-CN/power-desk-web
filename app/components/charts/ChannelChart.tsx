@@ -12,14 +12,15 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import { format } from "date-fns";
+import { last } from "ramda";
 import { type FC, useEffect, useMemo } from "react";
 import { ClientOnly } from "remix-utils/client-only";
-import {
-  getDeviceTopicWithChannel,
-  parseChannelFromTopic,
-} from "../../constants/mqtt-topic.constants";
+import { getDeviceTopicWithChannel } from "../../constants/mqtt-topic.constants";
 import {
   deserializeCurrentInAmperes,
+  deserializeOutCurrentInMilliAmperes,
+  deserializeOutVoltageInMillivolts,
   deserializePowerInWatts,
   deserializeVoltageInMillivolts,
 } from "../../helpers/mqtt-seraiallization";
@@ -51,10 +52,16 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
 
   const mqttClient = useMqttClient();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  const dataBuffer = useMemo(
+    () => new Array<{ timestamp: number; values: (number | null)[] }>(),
+    [deviceId, channel],
+  );
+
   const data = useMemo(
     () =>
       ({
-        labels: [] as number[],
+        labels: [] as string[],
         datasets: [
           {
             label: "Voltage of 0",
@@ -81,6 +88,30 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
             data: [] as number[],
             borderColor: "#228B22",
             backgroundColor: "#228B2277",
+            yAxisID: "powerValue",
+          },
+          {
+            label: "Out Voltage of 0",
+            cubicInterpolationMode: "monotone",
+            tension: 0.5,
+            data: [] as number[],
+            borderColor: "#3342FF",
+            yAxisID: "voltageValue",
+          },
+          {
+            label: "Out Current of 0",
+            cubicInterpolationMode: "monotone",
+            tension: 0.5,
+            data: [] as number[],
+            borderColor: "#ac333C",
+            yAxisID: "currentValue",
+          },
+          {
+            label: "Out Power of 0",
+            cubicInterpolationMode: "monotone",
+            tension: 0.5,
+            data: [] as number[],
+            borderColor: "#83a222",
             yAxisID: "powerValue",
           },
         ],
@@ -137,39 +168,68 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
       "current",
       channel,
     );
+    const outVoltageTopic = getDeviceTopicWithChannel(
+      deviceId,
+      "out-voltage",
+      channel,
+    );
+    const outCurrentTopic = getDeviceTopicWithChannel(
+      deviceId,
+      "out-current",
+      channel,
+    );
+    const outPowerTopic = getDeviceTopicWithChannel(
+      deviceId,
+      "out-power",
+      channel,
+    );
 
     const handleMessage = (_topic: string, message: Buffer) => {
       console.log({ _topic, message: message.toString() });
 
+      let lastOne = last(dataBuffer);
+      if (!lastOne || Date.now() - lastOne.timestamp > 1000) {
+        if (lastOne?.values.every((v) => v === null)) {
+          dataBuffer.pop();
+          data.labels.pop();
+        }
+        lastOne = {
+          timestamp: Date.now(),
+          values: data.datasets.map(() => null),
+        };
+        dataBuffer.push(lastOne);
+        data.labels.push(format(lastOne.timestamp, "HH:mm:ss"));
+      }
+      const lastIndex = dataBuffer.length - 1;
+
       if (voltageTopic === _topic) {
         const millivolts = deserializeVoltageInMillivolts(message);
-        data.labels.push(Date.now());
-        data.datasets[0].data.push(millivolts / 1000);
-
-        ChartJS.getChart(chartId)?.update();
-
-        return;
-      }
-
-      if (currentTopic === _topic) {
+        lastOne.values[0] = millivolts / 1000;
+        data.datasets[0].data[lastIndex] = lastOne.values[0];
+      } else if (currentTopic === _topic) {
         const amperes = deserializeCurrentInAmperes(message);
-        data.labels.push(Date.now());
-        data.datasets[1].data.push(amperes);
-
-        ChartJS.getChart(chartId)?.update();
-
-        return;
-      }
-
-      if (powerTopic === _topic) {
+        lastOne.values[1] = amperes;
+        data.datasets[1].data[lastIndex] = lastOne.values[1];
+      } else if (powerTopic === _topic) {
         const watts = deserializePowerInWatts(message);
-        data.labels.push(Date.now());
-        data.datasets[2].data.push(watts);
-
-        ChartJS.getChart(chartId)?.update();
-
+        lastOne.values[2] = watts;
+        data.datasets[2].data[lastIndex] = lastOne.values[2];
+      } else if (outVoltageTopic === _topic) {
+        const millivolts = deserializeOutVoltageInMillivolts(message);
+        lastOne.values[3] = millivolts / 1000;
+        data.datasets[3].data[lastIndex] = lastOne.values[3];
+      } else if (outCurrentTopic === _topic) {
+        const milliAmps = deserializeOutCurrentInMilliAmperes(message);
+        lastOne.values[4] = milliAmps / 1000;
+        data.datasets[4].data[lastIndex] = lastOne.values[4];
+      } else if (outPowerTopic === _topic) {
+        const watts = deserializePowerInWatts(message);
+        lastOne.values[5] = watts;
+        data.datasets[5].data[lastIndex] = lastOne.values[5];
+      } else {
         return;
       }
+      ChartJS.getChart(chartId)?.update();
     };
 
     mqttClient.on("message", handleMessage);
@@ -177,14 +237,20 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
     mqttClient.subscribe(voltageTopic);
     mqttClient.subscribe(powerTopic);
     mqttClient.subscribe(currentTopic);
+    mqttClient.subscribe(outVoltageTopic);
+    mqttClient.subscribe(outCurrentTopic);
+    mqttClient.subscribe(outPowerTopic);
 
     return () => {
       mqttClient.off("message", handleMessage);
       mqttClient.unsubscribe(voltageTopic);
       mqttClient.unsubscribe(powerTopic);
       mqttClient.unsubscribe(currentTopic);
+      mqttClient.unsubscribe(outVoltageTopic);
+      mqttClient.unsubscribe(outCurrentTopic);
+      mqttClient.unsubscribe(outPowerTopic);
     };
-  }, [deviceId, mqttClient, data, chartId, channel]);
+  }, [deviceId, mqttClient, data, chartId, channel, dataBuffer]);
 
   return (
     <ClientOnly>

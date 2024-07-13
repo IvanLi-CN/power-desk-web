@@ -12,6 +12,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import { format } from "date-fns";
 import { type FC, useEffect, useMemo } from "react";
 import { ClientOnly } from "remix-utils/client-only";
 import { getDeviceTopic } from "../../constants/mqtt-topic.constants";
@@ -43,7 +44,7 @@ const TemperatureChart: FC<TemperatureChartProps> = ({ deviceId }) => {
   const data = useMemo(
     () =>
       ({
-        labels: [] as number[],
+        labels: [] as string[],
         datasets: [
           {
             label: "Temperature",
@@ -94,7 +95,7 @@ const TemperatureChart: FC<TemperatureChartProps> = ({ deviceId }) => {
 
       if (topic === _topic) {
         const temperature = deserializeTemperature(message);
-        data.labels.push(Date.now());
+        data.labels.push(format(Date.now(), "HH:mm:ss"));
         data.datasets[0].data.push(temperature);
 
         ChartJS.getChart(chartId)?.update();

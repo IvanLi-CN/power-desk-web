@@ -5,6 +5,9 @@ const topicMapping = [
   ["voltage", "millivolts"],
   ["current", "amps"],
   ["power", "watts"],
+  ["out-voltage", "out-millivolts"],
+  ["out-current", "out-milliamps"],
+  ["out-power", "out-watts"],
 ] as const;
 
 export type Topic = (typeof topicMapping)[number][0];
