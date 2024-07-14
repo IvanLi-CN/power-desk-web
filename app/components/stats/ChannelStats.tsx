@@ -1,3 +1,4 @@
+import { max } from "ramda";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -103,8 +104,8 @@ const ChannelStats: FC<ChannelStatsProps> = ({ deviceId, channel }) => {
         const watts = deserializePowerInWatts(payload);
         setPower(watts);
       } else if (topic === currentTopic) {
-        const milliamps = deserializeCurrentInAmperes(payload);
-        setCurrent(milliamps);
+        const amps = deserializeCurrentInAmperes(payload);
+        setCurrent(max(amps, 0));
       } else if (topic === systemStatusTopic) {
         const systemStatus = SystemStatusResponse.fromBuffer(payload);
         setSystemStatus(systemStatus);
@@ -159,7 +160,14 @@ const ChannelStats: FC<ChannelStatsProps> = ({ deviceId, channel }) => {
     <div className="stats shadow w-full h-full">
       <div className="stat">
         <div className="stat-title uppercase">{t("common:voltage")}</div>
-        <div className="stat-value">{t("unit:volts", { value: voltage })}</div>
+        <div className="stat-value font-mono">
+          {t("unit:volts", {
+            value: voltage,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+          })}
+        </div>
         <div className="stat-desc">
           {t("target-output-voltage", {
             value: t("unit:volts", { value: buckOutputVoltage }),
@@ -169,7 +177,13 @@ const ChannelStats: FC<ChannelStatsProps> = ({ deviceId, channel }) => {
 
       <div className="stat">
         <div className="stat-title uppercase">{t("common:current")}</div>
-        <div className="stat-value">{t("unit:amps", { value: current })}</div>
+        <div className="stat-value font-mono">
+          {t("unit:amps", {
+            value: current,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+          })}
+        </div>
         <div className="stat-desc">
           {t("limit-output-current", {
             value: t("unit:amps", { value: outputLimitCurrent }),
@@ -179,7 +193,14 @@ const ChannelStats: FC<ChannelStatsProps> = ({ deviceId, channel }) => {
 
       <div className="stat">
         <div className="stat-title uppercase">{t("common:power")}</div>
-        <div className="stat-value">{t("unit:watts", { value: power })}</div>
+        <div className="stat-value font-mono">
+          {t("unit:watts", {
+            value: power,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+          })}
+        </div>
         <div className="stat-desc">
           {t("limit-power", {
             value: t("unit:watts", { value: limitPower }),
@@ -189,7 +210,7 @@ const ChannelStats: FC<ChannelStatsProps> = ({ deviceId, channel }) => {
 
       <div className="stat">
         <div className="stat-title uppercase">{t("protocol")}</div>
-        <div className="stat-value">
+        <div className="stat-value font-mono">
           {protocolIndication?.protocolStatus === ProtocolStatus.OnLine ? (
             <span>
               {t(

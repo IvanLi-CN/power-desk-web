@@ -1,4 +1,4 @@
-import { clamp } from "ramda";
+import { max } from "ramda";
 
 export function deserializeTemperature(message: Buffer) {
   return new DataView(message.buffer).getFloat32(message.byteOffset, true);
@@ -17,7 +17,7 @@ export function deserializeCurrentInAmperes(message: Buffer) {
     message.byteOffset,
     true,
   );
-  return clamp(0, 99_000, value);
+  return max(value, 0);
 }
 
 export function deserializeOutVoltageInMillivolts(message: Buffer) {

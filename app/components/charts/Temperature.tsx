@@ -49,10 +49,12 @@ const TemperatureChart: FC<TemperatureChartProps> = ({ deviceId }) => {
           {
             label: "Temperature",
             cubicInterpolationMode: "monotone",
-            tension: 0.5,
+            tension: 0.7,
             data: [] as number[],
-            borderColor: "rgb(255, 99, 132)",
+            borderColor: "#ff6384",
             backgroundColor: "rgba(255, 99, 132, 0.5)",
+            fill: true,
+            pointStyle: "line",
           },
         ],
       }) satisfies ChartData,
@@ -73,6 +75,10 @@ const TemperatureChart: FC<TemperatureChartProps> = ({ deviceId }) => {
             loop: true,
           },
         },
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
         scales: {
           y: {
             suggestedMin: 30,
@@ -91,14 +97,17 @@ const TemperatureChart: FC<TemperatureChartProps> = ({ deviceId }) => {
     const topic = getDeviceTopic(deviceId, "temperature");
 
     const handleMessage = (_topic: string, message: Buffer) => {
-      console.log({ _topic, message: message.toString() });
-
       if (topic === _topic) {
         const temperature = deserializeTemperature(message);
         data.labels.push(format(Date.now(), "HH:mm:ss"));
         data.datasets[0].data.push(temperature);
 
         ChartJS.getChart(chartId)?.update();
+
+        if (data.labels.length > 60 * 30) {
+          data.labels.shift();
+          data.datasets[0].data.shift();
+        }
       }
     };
 

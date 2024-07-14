@@ -19,8 +19,6 @@ import { ClientOnly } from "remix-utils/client-only";
 import { getDeviceTopicWithChannel } from "../../constants/mqtt-topic.constants";
 import {
   deserializeCurrentInAmperes,
-  deserializeOutCurrentInMilliAmperes,
-  deserializeOutVoltageInMillivolts,
   deserializePowerInWatts,
   deserializeVoltageInMillivolts,
 } from "../../helpers/mqtt-seraiallization";
@@ -69,8 +67,8 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
             tension: 0.5,
             data: [] as number[],
             borderColor: "#1E90FF",
-            backgroundColor: "#1E90FF77",
             yAxisID: "voltageValue",
+            pointStyle: "line",
           },
           {
             label: "Current of 0",
@@ -78,8 +76,8 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
             tension: 0.5,
             data: [] as number[],
             borderColor: "#DC143C",
-            backgroundColor: "#DC143C77",
             yAxisID: "currentValue",
+            pointStyle: "line",
           },
           {
             label: "Power of 0",
@@ -87,32 +85,8 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
             tension: 0.5,
             data: [] as number[],
             borderColor: "#228B22",
-            backgroundColor: "#228B2277",
             yAxisID: "powerValue",
-          },
-          {
-            label: "Out Voltage of 0",
-            cubicInterpolationMode: "monotone",
-            tension: 0.5,
-            data: [] as number[],
-            borderColor: "#3342FF",
-            yAxisID: "voltageValue",
-          },
-          {
-            label: "Out Current of 0",
-            cubicInterpolationMode: "monotone",
-            tension: 0.5,
-            data: [] as number[],
-            borderColor: "#ac333C",
-            yAxisID: "currentValue",
-          },
-          {
-            label: "Out Power of 0",
-            cubicInterpolationMode: "monotone",
-            tension: 0.5,
-            data: [] as number[],
-            borderColor: "#83a222",
-            yAxisID: "powerValue",
+            pointStyle: "line",
           },
         ],
       }) satisfies ChartData,
@@ -148,6 +122,10 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
             position: "right",
           },
         },
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
       }) satisfies ChartOptions,
     [],
   );
@@ -168,21 +146,6 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
       "current",
       channel,
     );
-    const outVoltageTopic = getDeviceTopicWithChannel(
-      deviceId,
-      "out-voltage",
-      channel,
-    );
-    const outCurrentTopic = getDeviceTopicWithChannel(
-      deviceId,
-      "out-current",
-      channel,
-    );
-    const outPowerTopic = getDeviceTopicWithChannel(
-      deviceId,
-      "out-power",
-      channel,
-    );
 
     const handleMessage = (_topic: string, message: Buffer) => {
       console.log({ _topic, message: message.toString() });
@@ -199,6 +162,10 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
         };
         dataBuffer.push(lastOne);
         data.labels.push(format(lastOne.timestamp, "HH:mm:ss"));
+        if (dataBuffer.length > 60 * 30) {
+          dataBuffer.shift();
+          data.labels.shift();
+        }
       }
       const lastIndex = dataBuffer.length - 1;
 
@@ -214,18 +181,6 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
         const watts = deserializePowerInWatts(message);
         lastOne.values[2] = watts;
         data.datasets[2].data[lastIndex] = lastOne.values[2];
-      } else if (outVoltageTopic === _topic) {
-        const millivolts = deserializeOutVoltageInMillivolts(message);
-        lastOne.values[3] = millivolts / 1000;
-        data.datasets[3].data[lastIndex] = lastOne.values[3];
-      } else if (outCurrentTopic === _topic) {
-        const milliAmps = deserializeOutCurrentInMilliAmperes(message);
-        lastOne.values[4] = milliAmps / 1000;
-        data.datasets[4].data[lastIndex] = lastOne.values[4];
-      } else if (outPowerTopic === _topic) {
-        const watts = deserializePowerInWatts(message);
-        lastOne.values[5] = watts;
-        data.datasets[5].data[lastIndex] = lastOne.values[5];
       } else {
         return;
       }
@@ -237,18 +192,12 @@ const ChannelChart: FC<ChannelChartProps> = ({ deviceId, channel }) => {
     mqttClient.subscribe(voltageTopic);
     mqttClient.subscribe(powerTopic);
     mqttClient.subscribe(currentTopic);
-    mqttClient.subscribe(outVoltageTopic);
-    mqttClient.subscribe(outCurrentTopic);
-    mqttClient.subscribe(outPowerTopic);
 
     return () => {
       mqttClient.off("message", handleMessage);
       mqttClient.unsubscribe(voltageTopic);
       mqttClient.unsubscribe(powerTopic);
       mqttClient.unsubscribe(currentTopic);
-      mqttClient.unsubscribe(outVoltageTopic);
-      mqttClient.unsubscribe(outCurrentTopic);
-      mqttClient.unsubscribe(outPowerTopic);
     };
   }, [deviceId, mqttClient, data, chartId, channel, dataBuffer]);
 
