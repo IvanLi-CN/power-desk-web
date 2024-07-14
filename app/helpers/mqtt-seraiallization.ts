@@ -1,3 +1,5 @@
+import { clamp } from "ramda";
+
 export function deserializeTemperature(message: Buffer) {
   return new DataView(message.buffer).getFloat32(message.byteOffset, true);
 }
@@ -11,7 +13,11 @@ export function deserializePowerInWatts(message: Buffer) {
 }
 
 export function deserializeCurrentInAmperes(message: Buffer) {
-  return new DataView(message.buffer).getFloat64(message.byteOffset, true);
+  const value = new DataView(message.buffer).getFloat64(
+    message.byteOffset,
+    true,
+  );
+  return clamp(0, 99_000, value);
 }
 
 export function deserializeOutVoltageInMillivolts(message: Buffer) {
@@ -23,5 +29,12 @@ export function deserializeOutCurrentInMilliAmperes(message: Buffer) {
 }
 
 export function deserializeOutPowerInWatts(message: Buffer) {
+  return new DataView(message.buffer).getUint16(message.byteOffset, true);
+}
+export function deserializeLimitPowerInWatts(message: Buffer) {
+  return new DataView(message.buffer).getUint8(message.byteOffset);
+}
+
+export function deserializeOutputLimitCurrentInMilliamps(message: Buffer) {
   return new DataView(message.buffer).getUint16(message.byteOffset, true);
 }

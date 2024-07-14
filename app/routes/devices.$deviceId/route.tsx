@@ -3,6 +3,7 @@ import type { FC, ReactNode } from "react";
 import invariant from "tiny-invariant";
 import ChannelChart from "../../components/charts/ChannelChart";
 import TemperatureChart from "../../components/charts/Temperature";
+import ChannelStats from "../../components/stats/ChannelStats";
 
 export default function Index() {
   const { deviceId } = useParams<{ deviceId: string }>();
@@ -15,6 +16,8 @@ export default function Index() {
   return (
     <div className="font-sans p-4">
       <h2 className="text-xl">{deviceId}</h2>
+      <ChannelStats deviceId={deviceId} channel={0} />
+
       <div className="grid grid-cols-2 gap-4">
         <ChartWrapper title="Temperature">
           <TemperatureChart deviceId={deviceId} />

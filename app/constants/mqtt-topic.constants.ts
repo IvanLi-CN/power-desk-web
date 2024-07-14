@@ -1,4 +1,4 @@
-export const prefix = "desk-power";
+export const prefix = "power-desk";
 
 const topicMapping = [
   ["temperature", "temperature"],
@@ -8,6 +8,12 @@ const topicMapping = [
   ["out-voltage", "out-millivolts"],
   ["out-current", "out-milliamps"],
   ["out-power", "out-watts"],
+  ["protocol-indication", "protocol-indication"],
+  ["system-status", "system-status"],
+  ["abnormal-case", "abnormal-case"],
+  ["limit-power", "limit-watts"],
+  ["buck-output-limit-current", "buck-output-limit-milliamps"],
+  ["buck-output-voltage", "buck-output-millivolts"],
 ] as const;
 
 export type Topic = (typeof topicMapping)[number][0];

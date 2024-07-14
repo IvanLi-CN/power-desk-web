@@ -28,6 +28,7 @@
   "protocol.VOOC": "VOOC",
   "protocol.SFCP": "SFCP",
   "protocol.AFC": "AFC",
-  "limit-power": "Max {{value}}",
-  "limit-output-current": "Max {{value}}"
+  "target-output-voltage": "Target {{value}}",
+  "limit-output-current": "Max {{value}}",
+  "limit-power": "Max {{value}}"
 }
