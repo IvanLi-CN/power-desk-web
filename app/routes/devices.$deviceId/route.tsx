@@ -16,14 +16,20 @@ export default function Index() {
   return (
     <div className="font-sans p-4">
       <h2 className="text-xl">{deviceId}</h2>
-      <ChannelStats deviceId={deviceId} channel={0} />
+      <div className="grid 3xl:grid-cols-2 grid-cols-1 gap-4">
+        <ChannelStats deviceId={deviceId} channel={0} />
+        <ChannelStats deviceId={deviceId} channel={3} />
+      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid 3xl:grid-cols-2 grid-cols-1 gap-4">
         <ChartWrapper title="Temperature">
           <TemperatureChart deviceId={deviceId} />
         </ChartWrapper>
         <ChartWrapper title="Channel 0">
           <ChannelChart deviceId={deviceId} channel={0} />
+        </ChartWrapper>
+        <ChartWrapper title="Channel 3">
+          <ChannelChart deviceId={deviceId} channel={3} />
         </ChartWrapper>
       </div>
     </div>
